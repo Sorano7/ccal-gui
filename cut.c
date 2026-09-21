@@ -16,6 +16,8 @@ int main(int argc, char **argv)
 
     cut_unit_includes(&app, "include");
     cut_unit_sources(&app, "src/main.c")
+    cut_unit_sources(&app, "src/eval.c")
+
     cut_unit_flags(&app, "-g", "-Wall", "-Wextra", "-Wno-override-init");
 
     cut_unit_lib_dirs(&app, "lib");
