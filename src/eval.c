@@ -69,6 +69,13 @@ static void update_options(Evaluator *ev)
 // Update the evaluator.
 void ev_update(Evaluator *ev)
 {
+    if (ev->eval_timer > 0)
+    {
+        ev->eval_timer -= GetFrameTime();
+        return;
+    }
+    ev->eval_timer = EVAL_TIMER_S;
+
     update_options(ev);
 
     if (IsKeyPressed(KEY_ENTER))
@@ -77,13 +84,10 @@ void ev_update(Evaluator *ev)
         return;
     }
 
-    if (ev->eval_timer > 0)
-    {
-        ev->eval_timer -= GetFrameTime();
-        return;
-    }
-
     char *tmp = NULL;
+    if (!ccal_expr_complete(ev->vm, ev->input_text))
+        return;
+
     CCalResult res = ccal_eval(ev->vm, ev->input_text);
     if (res.value) tmp = ccal_render(ev->vm, res.value);
 
@@ -92,8 +96,6 @@ void ev_update(Evaluator *ev)
         ev_clear_result(ev);
         ev->result_text = tmp;
     }
-
-    ev->eval_timer = EVAL_TIMER_S;
 }
 
 // Pad each side of the value.
