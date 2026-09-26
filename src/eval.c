@@ -45,6 +45,7 @@ static int  prec_val  = 50;
 static bool fmt_act   = false;
 static int  fmt_val   = 0;
 static bool input_act = false;
+static bool rat_val   = false;
 
 // Update VM options from global values.
 static void update_options(Evaluator *ev)
@@ -52,7 +53,7 @@ static void update_options(Evaluator *ev)
     ccal_set_ibase(ev->vm, ibase_val);
     ccal_set_obase(ev->vm, obase_val);
     ccal_set_max_digits(ev->vm, trunc_val);
-    ccal_set_precision(ev->vm, prec_val);
+    ccal_set_prec(ev->vm, prec_val);
 
     CCalRenderFmt fmt = CCAL_FMT_AUTO;
     switch (fmt_val)
@@ -60,10 +61,10 @@ static void update_options(Evaluator *ev)
         case 0:  fmt = CCAL_FMT_AUTO;        break;
         case 1:  fmt = CCAL_FMT_FIXED_POINT; break;
         case 2:  fmt = CCAL_FMT_SCIENTIFIC;  break;
-        case 3:  fmt = CCAL_FMT_RATIONAL;    break;
         default: UNREACHABLE();
     }
-    ccal_set_render_fmt(ev->vm, fmt);
+    ccal_set_format(ev->vm, fmt);
+    ccal_set_show_rational(ev->vm, rat_val);
 }
 
 // Update the evaluator.
@@ -127,8 +128,8 @@ void ev_render(Evaluator *ev)
 {
     if (fmt_act) GuiLock();
 
-    const float scalew = GetScreenWidth() / 800;
-    const float scaleh = GetScreenHeight() / 600;
+    const float scalew = (float)GetScreenWidth() / 800;
+    const float scaleh = (float)GetScreenHeight() / 600;
 
     // Scaled window dimensions.
     const float ww = 800 * scalew;
@@ -166,7 +167,7 @@ void ev_render(Evaluator *ev)
     Rectangle con_box = shrink(opt_box, padw * 0.6, padh * 0.6);
 
     ///////////////////
-    // Right col
+    // Left col
     ///////////////////
     GuiGroupBox(opt_box, "ibase");
     if (GuiSpinner(con_box, NULL, &ibase_val, 2, 65536, ibase_act))
@@ -191,13 +192,18 @@ void ev_render(Evaluator *ev)
         prec_act = !prec_act;
 
     ///////////////////
-    // Left col
+    // Right col
     ///////////////////
     next_opt = offset(opt_box, padw * 2, -1);
     con_box = shrink(next_opt, padw * 0.6, padh * 0.6);
     GuiGroupBox(next_opt, "format");
-    if (GuiDropdownBox(con_box, "auto;fixed;scientific;rational", &fmt_val, fmt_act))
+    if (GuiDropdownBox(con_box, "auto;fixed;scientific", &fmt_val, fmt_act))
         fmt_act = !fmt_act;
+
+    next_opt = offset(next_opt, -1, padh);
+    con_box = shrink(next_opt, padw * 0.6, padh * 0.6);
+    GuiGroupBox(next_opt, "rational");
+    GuiCheckBox(con_box, NULL, &rat_val);
 
     GuiUnlock();
 }
